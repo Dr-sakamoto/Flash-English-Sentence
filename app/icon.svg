@@ -1,0 +1,26 @@
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="瞬間英作文">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#191C24"/>
+      <stop offset="1" stop-color="#12141A"/>
+    </linearGradient>
+    <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#A8C0FF"/>
+      <stop offset="1" stop-color="#7AA2FF"/>
+    </linearGradient>
+  </defs>
+
+  <!-- 地。アプリ本体と同じ中性ダーク（--surface-0/1）で、
+       ホーム画面に並べたときも画面を開いたときと同じ色から始まる -->
+  <rect width="512" height="512" rx="116" fill="url(#bg)"/>
+  <rect x="4" y="4" width="504" height="504" rx="114" fill="none" stroke="#272C36" stroke-width="8"/>
+
+  <!-- 書きかけの3行。上2行は書き終え、3行目はカーソルの手前で途切れている
+       （＝いま書いている最中）。書くことがこのアプリの中身であることを示す -->
+  <path d="M120 196 h230 M120 262 h272 M120 328 h150"
+        stroke="#5E677B" stroke-width="18" stroke-linecap="round"/>
+
+  <!-- ペン先。3行目の続きを引いている位置に置く -->
+  <path d="M300 344 L392 156 L420 170 L328 358 L292 372 Z" fill="url(#ink)"/>
+  <path d="M300 344 L328 358" stroke="#12141A" stroke-width="8" stroke-linecap="round"/>
+</svg>
