@@ -111,14 +111,26 @@ export function useComposeSession() {
         : EMPTY_STREAK,
     [isClient],
   );
+  const initialApiKey = useMemo<string>(
+    () => (isClient ? storage.getString(COMPOSE_STORAGE_KEYS.GEMINI_API_KEY, "") : ""),
+    [isClient],
+  );
 
   const [progressOverride, setProgressOverride] = useState<ComposeProgress | null>(null);
   const [settingsOverride, setSettingsOverride] = useState<ComposeSettings | null>(null);
   const [streakOverride, setStreakOverride] = useState<StreakState | null>(null);
+  const [apiKeyOverride, setApiKeyOverride] = useState<string | null>(null);
 
   const progress = progressOverride ?? initialProgress;
   const settings = settingsOverride ?? initialSettings;
   const streak = streakOverride ?? initialStreak;
+  const apiKey = apiKeyOverride ?? initialApiKey;
+
+  const updateApiKey = useCallback((next: string) => {
+    const trimmed = next.trim();
+    storage.setString(COMPOSE_STORAGE_KEYS.GEMINI_API_KEY, trimmed);
+    setApiKeyOverride(trimmed);
+  }, []);
 
   const [phase, setPhase] = useState<ComposePhase>("start");
   const [mode, setMode] = useState<ComposeMode>("compose");
@@ -196,7 +208,12 @@ export function useComposeSession() {
         prev.map((item, i) => (i === index ? { ...item, input: text, committed: true } : item)),
       );
 
-      void gradeComposition({ prompt: entry.prompt, input: text, direction }).then((grade) => {
+      void gradeComposition({
+        prompt: entry.prompt,
+        input: text,
+        direction,
+        userApiKey: apiKey || undefined,
+      }).then((grade) => {
         const attempt = buildAttempt(entry, direction, text, grade, Date.now());
 
         setEntries((prev) =>
@@ -214,7 +231,7 @@ export function useComposeSession() {
       if (index + 1 < entries.length) setWritingIndex(index + 1);
       else setPhase("review");
     },
-    [direction, entries, initialProgress],
+    [apiKey, direction, entries, initialProgress],
   );
 
   /** 講評を1問進める。最後まで読んだらセッションの総括へ */
@@ -264,6 +281,7 @@ export function useComposeSession() {
     settings,
     streakDays,
     evaluation,
+    apiKey,
     setSize: settings.setSize,
     passScore: COMPOSE.PASS_SCORE,
     startSession,
@@ -272,5 +290,6 @@ export function useComposeSession() {
     advanceReview,
     backToStart,
     updateSettings,
+    updateApiKey,
   };
 }

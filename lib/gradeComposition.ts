@@ -1,3 +1,4 @@
+import { GEMINI_API_KEY_HEADER } from "./constants";
 import { gradeLocally } from "./localGrade";
 import { getExpectedAnswers } from "./question";
 import type { ComposeDirection, ComposePrompt, CompositionGrade, TagJudgement } from "./types";
@@ -20,6 +21,8 @@ export interface GradeCompositionParams {
   direction: ComposeDirection;
   /** テストから採点APIを差し替えるための口。既定はグローバルの fetch */
   fetchImpl?: typeof fetch;
+  /** 学習者が設定画面で入力した自分のGeminiキー（サーバーに未設定のときの代用） */
+  userApiKey?: string;
 }
 
 function toGrade(
@@ -55,6 +58,7 @@ export async function gradeComposition({
   input,
   direction,
   fetchImpl,
+  userApiKey,
 }: GradeCompositionParams): Promise<CompositionGrade> {
   const answers = getExpectedAnswers(prompt, direction);
   const fallback = gradeLocally({ input, answers, direction });
@@ -66,9 +70,12 @@ export async function gradeComposition({
   if (!doFetch) return fallback;
 
   try {
+    const headers: Record<string, string> = { "Content-Type": "application/json" };
+    if (userApiKey) headers[GEMINI_API_KEY_HEADER] = userApiKey;
+
     const response = await doFetch("/api/check", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify({ promptId: prompt.id, input, direction }),
     });
     if (!response.ok) return fallback;
