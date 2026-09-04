@@ -5,13 +5,16 @@ import { COMPOSE } from "@/lib/constants";
 import { buildTagProgressRows, getWeakTagIds } from "@/lib/mastery";
 import { summarizeProgress } from "@/lib/progress";
 import type { ComposeMode, ComposeProgress, ComposeSettings } from "@/lib/types";
+import ApiKeySettings from "./ApiKeySettings";
 import MasteryBar from "./MasteryBar";
 
 interface StartPanelProps {
   progress: ComposeProgress;
   settings: ComposeSettings;
+  apiKey: string;
   onStart: (mode: ComposeMode) => void;
   onSettingsChange: (next: Partial<ComposeSettings>) => void;
+  onApiKeyChange: (next: string) => void;
 }
 
 /**
@@ -27,8 +30,10 @@ interface StartPanelProps {
 export default function StartPanel({
   progress,
   settings,
+  apiKey,
   onStart,
   onSettingsChange,
+  onApiKeyChange,
 }: StartPanelProps) {
   const summary = summarizeProgress(progress);
   const rows = buildTagProgressRows(progress);
@@ -153,6 +158,8 @@ export default function StartPanel({
           これまでの分析を見る
         </Link>
       </div>
+
+      <ApiKeySettings apiKey={apiKey} onApiKeyChange={onApiKeyChange} />
     </div>
   );
 }

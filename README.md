@@ -26,6 +26,14 @@ npm run build
 | --- | --- |
 | `GEMINI_API_KEY` | AI採点（`gemini-2.5-flash`）。サーバー側だけで読む |
 
+プロジェクト直下に `.env.local` を作り、以下のように書く（`.gitignore` 済みでコミットされない）。
+
+```bash
+GEMINI_API_KEY=your-api-key-here
+```
+
+キーは [Google AI Studio](https://aistudio.google.com/apikey) で発行できる。
+
 未設定でもアプリは動く。その場合の採点は模範解答との照合（`lib/localGrade.ts`）へ
 自動的に落ちる。AI採点の添削文を試すときだけキーが要る。
 

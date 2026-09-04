@@ -33,12 +33,14 @@ export default function ComposePage() {
     settings,
     streakDays,
     evaluation,
+    apiKey,
     startSession,
     commitAnswer,
     revealHint,
     advanceReview,
     backToStart,
     updateSettings,
+    updateApiKey,
   } = useComposeSession();
 
   const answeredCount = entries.filter((entry) => entry.committed).length;
@@ -71,8 +73,10 @@ export default function ComposePage() {
             <StartPanel
               progress={progress}
               settings={settings}
+              apiKey={apiKey}
               onStart={startSession}
               onSettingsChange={updateSettings}
+              onApiKeyChange={updateApiKey}
             />
           ) : phase === "writing" && currentEntry ? (
             <WritingCard

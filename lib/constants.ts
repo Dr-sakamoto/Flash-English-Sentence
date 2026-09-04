@@ -50,4 +50,8 @@ export const COMPOSE_STORAGE_KEYS = {
   PROGRESS: "compose-progress",
   SETTINGS: "compose-settings",
   STREAK: "compose-daily-streak",
+  GEMINI_API_KEY: "compose-gemini-api-key",
 } as const;
+
+/** ユーザーが自分のGeminiキーをAI採点に使うときに送るヘッダー名 */
+export const GEMINI_API_KEY_HEADER = "x-gemini-api-key";

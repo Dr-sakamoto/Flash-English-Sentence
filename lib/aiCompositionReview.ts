@@ -42,16 +42,29 @@ export interface AiCompositionVerdict {
   tags: TagJudgement[];
 }
 
-export function isAiCompositionConfigured(): boolean {
-  return Boolean(process.env.GEMINI_API_KEY);
+/**
+ * AI採点が使えるか。
+ *
+ * サーバーの環境変数（GEMINI_API_KEY）が既定。未設定でも、学習者が
+ * 自分のキーを入力していれば（`/api/check` のヘッダー経由）そちらを使う
+ * ——キーはブラウザの localStorage に置かれ、リクエストのたびに一度きり
+ * サーバーへ渡るだけで、サーバー側の環境変数がクライアントへ漏れることはない。
+ */
+export function isAiCompositionConfigured(userApiKey?: string): boolean {
+  return Boolean(process.env.GEMINI_API_KEY || userApiKey);
 }
 
 let cachedClient: GoogleGenerativeAI | null = null;
+let cachedClientKey: string | null = null;
 
-function getClient(): GoogleGenerativeAI | null {
-  const apiKey = process.env.GEMINI_API_KEY;
+function getClient(userApiKey?: string): GoogleGenerativeAI | null {
+  const apiKey = process.env.GEMINI_API_KEY || userApiKey;
   if (!apiKey) return null;
-  if (!cachedClient) cachedClient = new GoogleGenerativeAI(apiKey);
+  // ユーザー提供キーは答案ごとに違い得るので、前回と同じキーのときだけ使い回す。
+  if (!cachedClient || cachedClientKey !== apiKey) {
+    cachedClient = new GoogleGenerativeAI(apiKey);
+    cachedClientKey = apiKey;
+  }
   return cachedClient;
 }
 
@@ -248,6 +261,8 @@ export function parseCompositionVerdict(
 
 export interface JudgeCompositionParams extends CompositionPromptParams {
   timeoutMs?: number;
+  /** サーバーにキー未設定のとき、学習者が入力した自分のキーで代用する */
+  userApiKey?: string;
 }
 
 /**
@@ -261,8 +276,9 @@ export async function judgeCompositionWithAi({
   tagIds,
   direction,
   timeoutMs = COMPOSITION_TIMEOUT_MS,
+  userApiKey,
 }: JudgeCompositionParams): Promise<AiCompositionVerdict | null> {
-  const client = getClient();
+  const client = getClient(userApiKey);
   if (!client) return null;
 
   try {

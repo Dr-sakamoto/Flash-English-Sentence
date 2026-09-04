@@ -1,4 +1,4 @@
-import { COMPOSE } from "@/lib/constants";
+import { COMPOSE, GEMINI_API_KEY_HEADER } from "@/lib/constants";
 import {
   isAiCompositionConfigured,
   judgeCompositionWithAi,
@@ -75,7 +75,15 @@ export async function POST(req: Request) {
     // 空欄はAIに渡すだけ無駄（採点するものが無い）。
     if (!input.trim()) return Response.json(local);
 
-    if (!isAiCompositionConfigured()) return Response.json(local);
+    // サーバーにキーが無くても、学習者が自分のキーを入れていればそれで採点する。
+    // ヘッダーは1リクエストごとに読むだけで、サーバー側に保存はしない。
+    const rawUserKey = req.headers.get(GEMINI_API_KEY_HEADER);
+    const userApiKey =
+      typeof rawUserKey === "string" && rawUserKey.length > 0 && rawUserKey.length <= 200
+        ? rawUserKey
+        : undefined;
+
+    if (!isAiCompositionConfigured(userApiKey)) return Response.json(local);
     if (!checkRateLimit(`compose-ai:${ip}`, AI_RATE_LIMIT).allowed) {
       return Response.json(local);
     }
@@ -86,6 +94,7 @@ export async function POST(req: Request) {
       answers,
       tagIds: [...prompt.tags],
       direction,
+      userApiKey,
     });
     if (!verdict) return Response.json(local);
 
