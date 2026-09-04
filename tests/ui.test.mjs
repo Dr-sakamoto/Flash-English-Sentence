@@ -66,10 +66,10 @@ test("講評は自分の答案を添削より先に置く", () => {
 
 test("画面のどこにも生の16進カラーを書かない（トークン経由で色を決める）", () => {
   for (const file of composeFiles) {
-    // ルートレイアウトの themeColor だけは例外。ブラウザのUI（アドレスバー）へ
-    // 渡す値なので CSS 変数を解決できず、リテラルでしか書けない。
-    // 代わりに、地の色トークンとずれていないことを次のテストで見張る。
-    if (file === "app/layout.tsx") continue;
+    // ルートレイアウトの themeColor と apple-icon は例外。ブラウザのUIや
+    // ImageResponse へ渡す値なので CSS 変数を解決できず、リテラルでしか書けない。
+    // 代わりに、他のトークン・アイコンとずれていないことを後続のテストで見張る。
+    if (file === "app/layout.tsx" || file === "app/apple-icon.tsx") continue;
     const hits = [...readSrc(file).matchAll(/#[0-9a-fA-F]{3,8}\b/g)].map((m) => m[0]);
     assert.deepEqual(hits, [], `${file} に直書きの色が残っている`);
   }
@@ -91,6 +91,21 @@ test("ブラウザUIの色はアプリの地の色と揃っている", () => {
   const surface0 = readSrc("app/globals.css").match(/--surface-0:\s*(#[0-9a-fA-F]{6})/)[1];
   const themeColor = readSrc("app/layout.tsx").match(/themeColor:\s*"(#[0-9a-fA-F]{6})"/)[1];
   assert.equal(themeColor.toLowerCase(), surface0.toLowerCase());
+});
+
+test("apple-icon はホーム画面用アイコン（icon.svg）と同じ配色", () => {
+  // ずれると、ホーム画面に置いたときだけ違うアプリに見える。
+  // 枠線（#272C36）は iOS 側が角丸マスクを掛けるため apple-icon には持たせない。
+  const icon = readSrc("app/icon.svg");
+  const appleIcon = readSrc("app/apple-icon.tsx");
+  const brandColors = [...icon.matchAll(/stop-color="(#[0-9a-fA-F]{6})"/g)].map((m) => m[1]);
+  assert.ok(brandColors.length > 0);
+  for (const hex of brandColors) {
+    assert.ok(
+      appleIcon.toUpperCase().includes(hex.toUpperCase()),
+      `apple-icon.tsx に icon.svg の色 ${hex} が無い`,
+    );
+  }
 });
 
 test("習熟度の色は地の上で読める（WCAG AA）", () => {
