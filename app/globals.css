@@ -1,0 +1,252 @@
+@import "tailwindcss";
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   デザイントークン
+
+   コンセプト（フロー状態 最優先 → 学習効果 → 継続性）から逆算して決めている。
+   色は「好み」ではなく役割で定義し、数値で検証できる根拠を持たせる。
+
+   1. 面は純黒にしない
+      純黒(#000)×純白(#fff)＝21:1 は OLED で白文字がにじむ（ハレーション）。
+      乱視のある人ほど読みづらい。面を #12141A、主要文字を #E8EBF2 とし
+      15.4:1 に落として WCAG AAA(7:1) を大きく超えたまま滲みだけ減らす。
+
+   2. 安静時に彩度を持つ要素をほぼゼロにする
+      設問を読んで英文を書いている間、視野の中で色を持つのは
+      「習熟度バー」だけ。彩度＝注意の吸引力なので、
+      注意を割く価値のあるものにだけ配る（コアバリュー1：割り込みを増やさない）。
+
+   3. 彩度は「頻度の逆数」で配る
+      正解は毎回起きるので静かに。不正解は稀で、かつ学習が起きる瞬間なので強く。
+
+   4. すべての色は #12141A 上でのコントラスト比を実測して選ぶ
+      本文 4.5:1 以上（WCAG AA / SC 1.4.3）、
+      境界線・アイコンなどUI部品は 3:1 以上（SC 1.4.11）。
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+:root {
+  color-scheme: dark;
+
+  /* ── 面（surface） ─────────────────────────────────────────────────────── */
+  --surface-0: #12141a; /* 画面地。純黒ではなくごく僅かに青を含む中性ダーク */
+  --surface-1: #191c24; /* 出題カード・パネル */
+  --surface-2: #15181f; /* 入力欄など、面より一段沈む領域 */
+
+  /* ── 文字（ink）。括弧内は --surface-0 上のコントラスト比 ──────────────── */
+  --ink-1: #e8ebf2; /* 15.4:1  設問・模範解答など「読ませたい」文字 */
+  --ink-2: #c9cfda; /* 11.8:1  本文 */
+  --ink-3: #8a93a3; /*  5.9:1  補助・メタ情報（スコア、品詞、アイコン） */
+
+  /* ── 線 ───────────────────────────────────────────────────────────────── */
+  --line: #272c36; /* 装飾的な区切り（コントラスト要件なし） */
+  --line-strong: #5e677b; /* 3.2:1  入力欄など操作可能なUI部品の輪郭 */
+
+  /* ── 操作色。安静時に画面上で唯一「進行」を表す色 ──────────────────────── */
+  --accent: #7aa2ff; /* 7.4:1 */
+  --accent-ink: #0f1218;
+
+  /* ── 判定色 ───────────────────────────────────────────────────────────── */
+  --positive: #5ecb8f; /* 9.1:1 */
+  --negative: #ff6b6b; /* 6.6:1 */
+  --negative-surface: #2a1518; /* この上で --ink-1 が 14.4:1 を保つ */
+  /* 「できてはいるが定着していない」中間段階。英作文の習熟度バーで
+     --negative（崩れている）と --positive（定着）の間を埋める。11.0:1 */
+  --warning: #e3c85c;
+}
+
+@theme inline {
+  --color-surface-0: var(--surface-0);
+  --color-surface-1: var(--surface-1);
+  --color-surface-2: var(--surface-2);
+  --color-ink-1: var(--ink-1);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-accent: var(--accent);
+  --color-accent-ink: var(--accent-ink);
+  --color-positive: var(--positive);
+  --color-negative: var(--negative);
+  --color-negative-surface: var(--negative-surface);
+  --color-warning: var(--warning);
+  /* 画面のすべて（日本語・英数字とも）を受け持つ細めのゴシック */
+  --font-ui: var(--font-ui);
+}
+
+html {
+  /* Safe Area対応 */
+  padding-left: env(safe-area-inset-left);
+  padding-right: env(safe-area-inset-right);
+  padding-top: env(safe-area-inset-top);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+body {
+  background: var(--surface-0);
+  color: var(--ink-2);
+  /* 和文・欧文を1ファミリーで持つ書体を先頭に置く。system-ui を先頭にすると
+     ラテン文字だけOSのUI書体、日本語だけ和文書体という二重書体になり、
+     「12 / 20 点」のような混在行で字面と太さが揃わない。
+     フォールバックも和欧文を1書体で持つものだけを並べる。 */
+  font-family:
+    var(--font-ui),
+    "Hiragino Kaku Gothic ProN", /* macOS/iOS */
+    "Yu Gothic",                 /* Windows */
+    sans-serif;
+  /* UI全体を細ゴシック1ウェイトで通す。強弱は太さではなく
+     文字色（--ink-1/2/3）とサイズで付ける。 */
+  font-weight: 300;
+  /* iOS Safari で 100vh 問題を回避 */
+  height: 100dvh;
+  height: 100svh;
+}
+
+body.safe-area {
+  /* Safe Area 内にコンテンツを配置 */
+  padding-left: max(0, env(safe-area-inset-left));
+  padding-right: max(0, env(safe-area-inset-right));
+}
+
+/* モバイルでの入力フィールド対応 */
+input[type="text"],
+input[type="search"],
+textarea {
+  /* iOS Safari でズームを防ぐ（最小フォントサイズ）*/
+  font-size: 16px;
+  /* キーボード表示時に入力フィールドがスクロール内に入るようにする */
+  -webkit-user-select: text;
+}
+
+/* タップハイライトの削除（アクティブ状態は別で定義） */
+button,
+input,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+@keyframes ios-spinner-fade {
+  0% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.15;
+  }
+}
+
+/* AI審議中インジケーター: 12本の羽根が順番にフェードする定番の「読み込み中」スピナー */
+.ios-spinner {
+  position: relative;
+  display: inline-block;
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: currentColor;
+}
+
+.ios-spinner-bar {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 1.6px;
+  height: 5px;
+  margin-top: -6px;
+  margin-left: -0.8px;
+  border-radius: 1px;
+  background: currentColor;
+  transform-origin: 50% 6px;
+  animation: ios-spinner-fade 1s linear infinite;
+}
+
+/* ── コンポーネント ──────────────────────────────────────────────────────── */
+
+/* 画面全体。地の色以外に模様・グラデーション・発光を置かない。
+   背景の情報量はそのまま前景（設問と自分の答案）の相対的な目立ちにくさになる。 */
+.app-shell {
+  color: var(--ink-2);
+  background-color: var(--surface-0);
+}
+
+/* 出題カード。枠は固定し、中身（設問）だけが入れ替わる。
+   カード自体が動く・光ると、いちばん読ませたい文字の周りで
+   視線が奪われる（動きによる注意の外因性捕捉）。 */
+.prompt-card {
+  background-color: var(--surface-1);
+  border: 1px solid var(--line);
+  border-radius: 0.75rem;
+}
+
+/* 面から浮かない控えめなボタン。塗りつぶしの操作色は
+   「いま押すべきもの」が一つに定まるときだけ使う（.btn-accent）。 */
+.btn-quiet {
+  background-color: var(--surface-1);
+  border: 1px solid var(--line);
+  color: var(--ink-2);
+  transition:
+    background-color 0.12s ease,
+    border-color 0.12s ease,
+    color 0.12s ease;
+}
+.btn-quiet:hover:not(:disabled) {
+  border-color: var(--line-strong);
+  color: var(--ink-1);
+}
+.btn-quiet:active:not(:disabled) {
+  background-color: var(--surface-2);
+}
+
+.btn-accent {
+  background-color: var(--accent);
+  color: var(--accent-ink);
+  border: 1px solid transparent;
+  transition:
+    filter 0.12s ease,
+    transform 0.08s ease;
+}
+.btn-accent:hover:not(:disabled) {
+  filter: brightness(1.06);
+}
+.btn-accent:active:not(:disabled) {
+  transform: translateY(1px);
+}
+
+/* 進捗ゲージ */
+.gauge-track {
+  background-color: var(--line);
+}
+
+/* 添削の差分（英作文）。削除は打ち消し線、追加は下線を併用し、
+   色を持たない・色が読めない環境でも区別が残るようにする（SC 1.4.1）。 */
+.diff-added {
+  color: var(--positive);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.diff-removed {
+  color: var(--negative);
+  text-decoration: line-through;
+}
+
+/* 英作文の答案欄。1文を書き切る前提なので、単語の1行入力より背を高く取る。 */
+.compose-field {
+  background-color: var(--surface-2);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-1);
+  resize: none;
+  transition:
+    border-color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+.compose-field::placeholder {
+  color: var(--ink-3);
+}
+.compose-field:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 22%, transparent);
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ios-spinner-bar {
+    animation: none;
+  }
+}
